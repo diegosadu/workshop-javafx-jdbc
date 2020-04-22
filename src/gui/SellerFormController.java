@@ -1,9 +1,11 @@
 package gui;
 
 import java.net.URL;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -110,22 +112,42 @@ public class SellerFormController implements Initializable {
 	}
 
 	private Vendedor getFormData() {
-		Vendedor dep = new Vendedor();
+		Vendedor vend = new Vendedor();
 
 		ValidationException exception = new ValidationException("Erro na validação");
 
-		dep.setId(Utils.tryParseToInt(txtId.getText()));
+		vend.setId(Utils.tryParseToInt(txtId.getText()));
 
 		if (txtNome.getText() == null || txtNome.getText().trim().equals("")) {
 			exception.addErros("nome", "Campo não pode ser vazio.");
 		}
-		dep.setNome(txtNome.getText());
+		vend.setNome(txtNome.getText());
 
+		if (txtEmail.getText() == null || txtEmail.getText().trim().equals("")) {
+			exception.addErros("email", "Campo não pode ser vazio.");
+		}
+		vend.setEmail(txtEmail.getText());
+
+		if (dpDataNascimento.getValue() == null) {
+			exception.addErros("dataNascimento", "Campo não pode ser vazio.");
+		}
+		else {
+			Instant instant = Instant.from(dpDataNascimento.getValue().atStartOfDay(ZoneId.systemDefault()));
+		    vend.setDataNascimento(Date.from(instant));
+		}
+		
+		if (txtSalarioBase.getText() == null || txtSalarioBase.getText().trim().equals("")) {
+			exception.addErros("salarioBase", "Campo não pode ser vazio.");
+		}
+		vend.setSalarioBase(Utils.tryParseToDouble(txtSalarioBase.getText()));
+		
 		if (exception.getErros().size() > 0) {
 			throw exception;
 		}
 
-		return dep;
+		vend.setDepartamento(comboBoxDepartamento.getValue());
+		
+		return vend;
 	}
 
 	@FXML
@@ -178,9 +200,18 @@ public class SellerFormController implements Initializable {
 	private void setMsgsErro(Map<String, String> erros) {
 		Set<String> campos = erros.keySet();
 
-		if (campos.contains("nome")) {
+		/*if (campos.contains("nome")) {
 			labelErrorNome.setText(erros.get("nome"));
 		}
+		else {
+			labelErrorNome.setText("");
+		}*/
+		// operador condicional ternário (mesmo funcionamento do decode. '?' para verdadeiro, ':' para falso )
+		labelErrorNome.setText(campos.contains("nome") ? erros.get("nome") : "");
+		labelErrorEmail.setText(campos.contains("email") ? erros.get("email") : "");
+		labelErrorSalarioBase.setText(campos.contains("salarioBase") ? erros.get("salarioBase") : "");
+		labelErrorDataNascimento.setText(campos.contains("dataNascimento") ? erros.get("dataNascimento") : "");
+		
 	}
 
 	private void initializeComboBoxDepartment() {
